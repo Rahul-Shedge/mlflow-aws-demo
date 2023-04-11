@@ -16,6 +16,6 @@ from utils.common import read_yaml
 
 
 if __name__ == "__main__":
-    config = read_yaml("aws_configurations/config.yaml")
+    config = read_yaml("config.yaml")
     response = remove_deployed_model(config)
     print(response)
