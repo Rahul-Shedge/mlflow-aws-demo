@@ -25,7 +25,7 @@ def deploy_model_aws_sagemaker(config=None):
     try:
         app_name = config['params']['app_name']
         execution_role_arn = config['params']['execution_role_arn']
-        image_ecr_url = config['params']['image_ecr_url']
+        image_ecr_uri = config['params']['image_ecr_uri']
         region = config['params']['region']
         s3_bucket_name = config['params']['s3_bucket_name']
         experiment_id = config['params']['experiment_id']
@@ -40,7 +40,7 @@ def deploy_model_aws_sagemaker(config=None):
                     model_uri=model_uri,
                     execution_role_arn=execution_role_arn,
                     region_name=region,
-                    image_url=image_ecr_url,
+                    image_url=image_ecr_uri,
                     mode = mfs.DEPLOYMENT_MODE_CREATE )
         
         return "Deployment Successfully"
@@ -53,20 +53,20 @@ def query(input_json,config = None):
     try:
         app_name = config['params']['app_name']
         region = config['params']['region']
-        client = boto3.session.Session.client("sagemaker-runtime",region)
+        client = boto3.Session().client("sagemaker-runtime",region)
         response = client.invoke_endpoint(
             EndpointName = app_name,
             Body = input_json,
-            ContentType = 'application/json; format=pandas-split'
+            ContentType = 'application/json',
         )
-        
-        preds = response['Body'].read().decode('ascii')
+        preds = response['Body'].read().decode("ascii")
         preds = json.loads(preds)
 
         return preds
 
     except Exception as e:
-        return f"Error Occurred While Prediction : {e.__str__()}"
+        raise e
+        #return f"Error Occurred While Prediction : {e.__str__()}"
     
 
 
@@ -74,7 +74,7 @@ def switching_models(config=None):
     try:
         app_name = config['params']['app_name']
         execution_role_arn = config['params']['execution_role_arn']
-        image_ecr_url = config['params']['image_ecr_url']
+        image_ecr_uri = config['params']['image_ecr_uri']
         region = config['params']['region']
         s3_bucket_name = config['params']['s3_bucket_name']
         experiment_id = config['params']['experiment_id']
@@ -89,7 +89,7 @@ def switching_models(config=None):
                     model_uri=model_uri,
                     execution_role_arn=execution_role_arn,
                     region_name=region,
-                    image_url=image_ecr_url,
+                    image_url=image_ecr_uri,
                     mode = mfs.DEPLOYMENT_MODE_REPLACE )
         
         return "Model Successfully Changed"
@@ -102,7 +102,7 @@ def remove_deployed_model(config=None):
         app_name = config['params']['app_name']
         region = config['params']['region']
 
-        mfs.delete(app_name = app_name,region_name = region)
+        mfs._delete(app_name = app_name,region_name = region)
         return f'Endpoint Successfully Deleted : {app_name}'
     
     except Exception as e:
